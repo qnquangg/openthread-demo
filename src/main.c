@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <openthread/thread.h>
@@ -18,11 +12,6 @@
 #define LED0_NODE DT_ALIAS(led0)
 
 LOG_MODULE_REGISTER(blinky);
-
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 static void on_thread_state_changed(otChangedFlags flags, struct openthread_context *ot_context,
@@ -56,12 +45,10 @@ static void on_thread_state_changed(otChangedFlags flags, struct openthread_cont
 static struct openthread_state_changed_cb ot_state_chaged_cb = {
 	.state_changed_cb = on_thread_state_changed};
 
-void config_openthread() {
-	// Start thread
+void config_openthread()
+{
 	openthread_state_changed_cb_register(openthread_get_default_context(), &ot_state_chaged_cb);
 	openthread_start(openthread_get_default_context());
-
-	// check
 }
 
 int main(void)
