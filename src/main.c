@@ -2,8 +2,10 @@
 #include <zephyr/drivers/gpio.h>
 #include <openthread/thread.h>
 #include <zephyr/net/openthread.h>
+#include <zephyr/net/openthread.h>
 #include <zephyr/net/socket.h>
 #include <zephyr/logging/log.h>
+#include <openthread/ip6.h>
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 1000
@@ -45,10 +47,26 @@ static void on_thread_state_changed(otChangedFlags flags, struct openthread_cont
 static struct openthread_state_changed_cb ot_state_chaged_cb = {
 	.state_changed_cb = on_thread_state_changed};
 
-void config_openthread()
+void register_callback_and_start_thread()
 {
 	openthread_state_changed_cb_register(openthread_get_default_context(), &ot_state_chaged_cb);
 	openthread_start(openthread_get_default_context());
+}
+
+void subcribe_multicast_address()
+{
+	struct openthread_context *ot_context = openthread_get_default_context();
+
+	// subscribe to multicast address in openthread
+	struct otIp6Address addr;
+	inet_pton(AF_INET6, "ff06::abcd", &addr);
+	otIp6SubscribeMulticastAddress(ot_context->instance, &addr);
+	struct otIp6Address addr2;
+	inet_pton(AF_INET6, "ff07::abcd", &addr2);
+	otIp6SubscribeMulticastAddress(ot_context->instance, &addr2);
+
+	// set router eligible to false
+	// otThreadSetRouterEligible(ot_context->instance, false);
 }
 
 int main(void)
@@ -66,7 +84,10 @@ int main(void)
 		return 0;
 	}
 
-	config_openthread();
+	register_callback_and_start_thread();
+	// delay 2s to wait for thread network to be ready
+	k_msleep(2000);
+	subcribe_multicast_address();
 
 	while (1)
 	{
